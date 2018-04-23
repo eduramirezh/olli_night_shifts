@@ -1,0 +1,59 @@
+6. For social good
+
+Greenpeace
+API Highways https://apihighways.org/
+Geomun2.org
+
+7 Designing better Location Intelligence apps
+
+ steps:
+  3 basics:
+    - Define your (set of) question(s)
+    - Understand your users
+      - How will they use it?
+      - What is their level of understanding
+    - Determine ideal output
+      - Usage
+      - Constraints
+
+  Progressive disclosure
+    Hide features while not required
+
+  https://airship-test.now.sh/
+
+
+  https://maptionnaire.com/
+
+  *Paul Ramsey:
+    Politics
+    NDP
+    https://github.com/pramsey
+    Get Out the vote - Green
+
+  *From Simple to Decadent Analytics: Making a Data Streams Layer Cake
+
+
+**TomTom
+
+-> Map building
+
+Technology Trends in the LI World (Carto)
+
+-> Interesting built in analysis functions and tools
+coming soon: Analysis API
+Leaflet ± Carto.js 4
+Carto VL -> styling language
+https://github.com/CartoDB/carto-vl
+
+Waze + Carto + Madrid
+https://carto.com/solutions/traffico/
+
+Waze Outsmarting -> Ending traffic, through car pooling
+Aim to add a rider to every Waze driver
+https://wiki.waze.com/wiki/Connected_Citizens_Program
+
+
+
+
+
+
