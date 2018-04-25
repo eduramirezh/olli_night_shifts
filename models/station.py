@@ -1,7 +1,21 @@
 import requests
 import dateparser
 import json
-SHUTTLE_SPEED = 30 #km/hr
+from shapely.geometry import Point
+from shapely.ops import transform
+from functools import partial
+import pyproj
+
+SHUTTLE_SPEED = 20 #km/hr
+
+def coordinates_to_geography(shapely_point):
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(init='EPSG:4326'),
+        pyproj.Proj(init='EPSG:32633')
+    )
+    return transform(project, shapely_point)
+
 
 class Stop():
     '''doc'''
@@ -10,7 +24,7 @@ class Stop():
         self._id = _id
         self.name = name
         self.station = station
-        self.location = [lat, lon]
+        self.location = coordinates_to_geography(Point(lon, lat))
         self.lines = set()
         type(self).all_stops[_id] = self
 
@@ -21,7 +35,7 @@ class Station():
     def __init__(self, _id, name, lat, lon, weight):
         self._id = _id
         self.name = name
-        self.location = [lat, lon]
+        self.location = coordinates_to_geography(Point(lon, lat))
         self.weight = float(weight)
         self.schedules = []
         self.linked_stations = []
@@ -65,10 +79,10 @@ class Station():
         return set(station_a.linked_stations).intersection(set(station_b.linked_stations))
 
     @classmethod
-    def time_between(cls, station_a, station_b):
+    def minutes_between(cls, station_a, station_b):
         """to be documented"""
-        distance = station_a.location - station_b.location # shapely distance something
-        return distance/SHUTTLE_SPEED
+        distance = station_a.location.distance(station_b.location)/1000
+        return (distance/SHUTTLE_SPEED)*60
 
     @classmethod
     def can_reach(cls, station_a, station_b, current_time):
@@ -127,6 +141,7 @@ class Journey():
         self.when = dateparser.parse(when)
         self.direction = Station.find_by_name(direction)
         self.line = Line.find_by_name(line['name'])
+        self.line_name = line['name']
         self.trip = trip
         self.delay = delay
 
@@ -184,7 +199,8 @@ class Line():
         return stop_or_station in self.stations_set
 
 
-    def intersecting_lines(self):
+
+    def intersecting_lines(self, origin, destination):
         all_lines = type(self).all_lines
         intersecting_lines = {}
         for line_id in all_lines:
@@ -198,6 +214,11 @@ class Line():
 
     @classmethod
     def find_by_name(cls, name):
+        name = name.split()
+        if len(name)>1:
+            name = name[1]
+        else:
+            name = name[0]
         for line_id in cls.all_lines:
             line = cls.all_lines[line_id]
             if line.name == name:

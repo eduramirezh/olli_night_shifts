@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from models.station import Station, Stop, Line
-import time
+from datetime import datetime
+import pytz
 
 stations_instances = Station.get_stations()
 stations_dict = Station.all_stations
@@ -20,9 +21,15 @@ lines_dict = Line.all_lines
 #        for station in intersecting_lines[line_id]:
 #            print(f' -- -- {station.name}')
 
-START = 1000
-END = 7000
+START = datetime.now(pytz.timezone("Europe/Berlin")) \
+            .replace(hour=1, minute=0, second=0) \
+            .astimezone(pytz.utc).timestamp()
+START = datetime.now(pytz.timezone("Europe/Berlin")) \
+            .replace(hour=1, minute=0, second=0) \
+            .astimezone(pytz.utc).timestamp()
 
 #for minute in range(START, END):
-for station in stations_instances[:2]:
-    print(station.departures(time.time()))
+for station in stations_instances[:100]:
+    for journey in station.departures(int(START)):
+        current_line = journey.line
+        intersecting_lines = current_line.intersecting_lines()
