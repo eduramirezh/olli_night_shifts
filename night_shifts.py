@@ -29,7 +29,10 @@ START = datetime.now(pytz.timezone("Europe/Berlin")) \
             .astimezone(pytz.utc).timestamp()
 
 #for minute in range(START, END):
-for station in stations_instances[:100]:
+for station in stations_instances[:10]:
     for journey in station.departures(int(START)):
         current_line = journey.line
-        intersecting_lines = current_line.intersecting_lines()
+        direction = journey.direction
+        print(journey.direction_name)
+        intersecting_lines = current_line.intersecting_lines(station, direction)
+        print(intersecting_lines)

@@ -140,6 +140,7 @@ class Journey():
         self.station = station
         self.when = dateparser.parse(when)
         self.direction = Station.find_by_name(direction)
+        self.direction_name = direction
         self.line = Line.find_by_name(line['name'])
         self.line_name = line['name']
         self.trip = trip
@@ -200,17 +201,30 @@ class Line():
 
 
 
-    def intersecting_lines(self, origin, destination):
-        all_lines = type(self).all_lines
-        intersecting_lines = {}
-        for line_id in all_lines:
-            if line_id == self._id:
+    def intersecting_lines(self, origin, dest):
+        print(origin.name)
+        print(dest.name)
+        for variant in self.variants:
+            print([x.name for x in variant])
+            try:
+                origin_index = variant.index(origin)
+                dest_index = variant.index(dest)
+            except:
                 continue
-            line = all_lines[line_id]
-            common_stations = line.stations_set.intersection(self.stations_set)
-            if len(common_stations) > 0:
-                intersecting_lines[line._id] = common_stations
-        return intersecting_lines
+            if dest_index > origin_index:
+                origin_index = origin_index + 1
+            else:
+                origin_index = origin_index - 1
+
+            intersections = []
+            for i in range(origin_index, dest_index):
+                current_station = variant[i]
+                intersections.append([current_station, current_station.lines.remove(self)])
+            return intersections
+        return None
+
+
+
 
     @classmethod
     def find_by_name(cls, name):
