@@ -39,6 +39,7 @@ class Station():
         self.weight = float(weight)
         self.schedules = []
         self.linked_stations = []
+        self.station = self
         self.stops = []
         self.lines = set()
         type(self).all_stations[_id] = self
@@ -50,6 +51,16 @@ class Station():
             if schedule >= start and schedule <= end:
                 result.append(schedule)
         return result
+
+
+
+    def contiguous_stations(self):
+        contiguous = []
+        for line in self.lines:
+            contiguous.extend(line.next_stations(self))
+        return contiguous
+
+
 
     def next_departure(self, current_time):
         """tbd"""
@@ -64,12 +75,14 @@ class Station():
     def departures(self, timestamp):
         """tbd"""
         journeys = []
-        url = f'http://localhost:3000/stations/{self._id}/departures?when={int(timestamp)}'
-        journeys_data = requests.get(url).json()
-        for journey in journeys_data:
-            if journey.get('cancelled', False):
-                continue
-            journeys.append(Journey(journey['journeyId'], self, journey['when'], journey['direction'], journey['line'], journey['trip'], journey['delay']))
+        directions = self.contiguous_stations()
+        for direction in directions:
+            url = f'http://localhost:3000/stations/{self._id}/departures?when={int(timestamp)}&nextStation={direction._id}'
+            journeys_data = requests.get(url).json()
+            for journey in journeys_data:
+                if journey.get('cancelled', False):
+                    continue
+                journeys.append(Journey(journey['journeyId'], self, journey['when'], direction, journey['line'], journey['trip'], journey['delay']))
         return journeys
 
 
@@ -139,8 +152,7 @@ class Journey():
         self._id = _id
         self.station = station
         self.when = dateparser.parse(when)
-        self.direction = Station.find_by_name(direction)
-        self.direction_name = direction
+        self.direction = direction # station
         self.line = Line.find_by_name(line['name'])
         self.line_name = line['name']
         self.trip = trip
@@ -177,6 +189,24 @@ class Line():
             self.variants.append(new_variant)
 
 
+    def station_from_direction_steps(self, origin, direction, steps=1):
+        for variant in self.variants:
+            index_origin = None
+            index_direction = None
+            index_result = None
+            for i in range(len(variant)):
+                if variant[i] == origin:
+                    index_origin = i
+                elif variant[i] == direction:
+                    index_direction = i
+                if index_direction and index_origin:
+                    if index_direction > index_origin:
+                        index_result = index_origin + steps
+                    else:
+                        index_result = index_origin - steps
+                if index_result and index_result < len(variant):
+                    return variant[index_result]
+
     @classmethod
     def get_lines(cls, return_dictionary=False):
         '''doc'''
@@ -199,13 +229,21 @@ class Line():
     def contains_stop_or_station(self, stop_or_station):
         return stop_or_station in self.stations_set
 
+    def next_stations(self, station):
+        result = []
+        for variant in self.variants:
+            for i in range(len(variant)):
+                if variant[i].station == station:
+                    if i > 0:
+                        result.append(variant[i - 1])
+                    if i + 1 < len(variant):
+                        result.append(variant[i + 1])
+                    continue
+        return result
 
 
     def intersecting_lines(self, origin, dest):
-        print(origin.name)
-        print(dest.name)
         for variant in self.variants:
-            print([x.name for x in variant])
             try:
                 origin_index = variant.index(origin)
                 dest_index = variant.index(dest)
@@ -222,9 +260,6 @@ class Line():
                 intersections.append([current_station, current_station.lines.remove(self)])
             return intersections
         return None
-
-
-
 
     @classmethod
     def find_by_name(cls, name):
