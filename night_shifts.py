@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from models.station import Station, Stop, Line
+from models import Station, Stop, Line
 from datetime import datetime
 import pytz
 
@@ -24,7 +24,7 @@ lines_dict = Line.all_lines
 START = datetime.now(pytz.timezone("Europe/Berlin")) \
             .replace(hour=1, minute=0, second=0) \
             .astimezone(pytz.utc).timestamp()
-START = datetime.now(pytz.timezone("Europe/Berlin")) \
+END = datetime.now(pytz.timezone("Europe/Berlin")) \
             .replace(hour=1, minute=0, second=0) \
             .astimezone(pytz.utc).timestamp()
 
