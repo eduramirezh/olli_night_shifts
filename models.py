@@ -59,10 +59,13 @@ class Station():
             url += f'&when={when}'
         journeys_data = requests.get(url).json()
         print('+++++++++++++++++')
-        for journey in journeys_data:
-            print(journey)
+        print(journeys_data)
         print('+++++++++++++++++')
-        return 1000
+        if len(journeys_data) > 0:
+            journey = journeys_data[0]
+            print(journey)
+            #return journey['destination_time'] - when
+        return 100000000
 
     def time_by_shuttle_in_minutes(self, station):
         origin = self.location
@@ -221,8 +224,8 @@ class Line():
                         index_result = index_origin + steps
                     else:
                         index_result = index_origin - steps
-                if index_result and index_result < len(variant):
-                    return variant[index_result].station
+                if index_result and index_result < len(variant) and index_result >= 0:
+                    return variant[index_result]
         return None
 
     @classmethod
