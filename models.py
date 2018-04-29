@@ -56,6 +56,12 @@ class Station():
     def time_to_station(self, station):
         pass
 
+    def time_by_shuttle_in_minutes(self, station):
+        origin = self.location
+        destination = station.location
+        distance = origin.distance(destination)/1000
+        return (distance/SHUTTLE_SPEED)*60
+
 
     def contiguous_stations(self):
         contiguous = []
@@ -198,9 +204,9 @@ class Line():
             index_direction = None
             index_result = None
             for i in range(len(variant)):
-                if variant[i] == origin:
+                if variant[i].station == origin.station:
                     index_origin = i
-                elif variant[i] == direction:
+                elif variant[i].station == direction.station:
                     index_direction = i
                 if index_direction and index_origin:
                     if index_direction > index_origin:
@@ -208,7 +214,7 @@ class Line():
                     else:
                         index_result = index_origin - steps
                 if index_result and index_result < len(variant):
-                    return variant[index_result]
+                    return variant[index_result].station
         return None
 
     @classmethod

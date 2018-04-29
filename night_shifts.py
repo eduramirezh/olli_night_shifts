@@ -37,6 +37,7 @@ for station in stations_instances[:10]:
             while True: #while more stations in direction
                 common_station = line.station_from_direction_steps(station, direction, i)
                 if common_station is None:
+                    print('no common station')
                     break
                 for different_line in common_station.lines:
                     if different_line == line:
@@ -45,7 +46,7 @@ for station in stations_instances[:10]:
                         j = 1
                         while True: #while more stations in direction
                             candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
-                            if station.time_to_station(common_station) > (station.time_by_shuttle(candidate) + candidate.time_to_station(common_station)):
+                            if station.time_to_station(common_station) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station)):
                                 candidates.append(candidate)
                             j += 1
                 i += 1
