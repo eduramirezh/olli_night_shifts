@@ -28,10 +28,24 @@ START = datetime.now(pytz.timezone("Europe/Berlin")) \
             .replace(hour=1, minute=0, second=0) \
             .astimezone(pytz.utc).timestamp()
 
+candidates = []
 #for minute in range(START, END):
 for station in stations_instances[:10]:
-    for journey in station.departures(int(START)):
-        current_line = journey.line
-        direction = journey.direction
-        intersecting_lines = current_line.intersecting_lines(station, direction)
-        print(intersecting_lines)
+    for line in station.lines:
+        for direction in line.next_stations(station): # en teoria 2
+            i = 1
+            while True: #while more stations in direction
+                common_station = line.station_from_direction_steps(station, direction, i)
+                if common_station is None:
+                    break
+                for different_line in common_station.lines:
+                    if different_line == line:
+                        continue
+                    for different_direction in different_line.next_stations(common_station):
+                        j = 1
+                        while True: #while more stations in direction
+                            candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
+                            if station.time_to_station(common_station) > (station.time_by_shuttle(candidate) + candidate.time_to_station(common_station)):
+                                candidates.append(candidate)
+                            j += 1
+                i += 1

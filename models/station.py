@@ -53,6 +53,9 @@ class Station():
         return result
 
 
+    def time_to_station(self, station):
+        pass
+
 
     def contiguous_stations(self):
         contiguous = []
@@ -206,6 +209,7 @@ class Line():
                         index_result = index_origin - steps
                 if index_result and index_result < len(variant):
                     return variant[index_result]
+        return None
 
     @classmethod
     def get_lines(cls, return_dictionary=False):
