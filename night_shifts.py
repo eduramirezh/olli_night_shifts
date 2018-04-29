@@ -63,6 +63,7 @@ for station in stations_instances[:10]:
                             for minute in range(START, END, 60):
                                 if station.time_to_station(common_station, minute) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute)):
                                     candidates.append([station, candidate, common_station, minute])
+                                    print('New candidate!')
                             j += 1
                 i += 1
 
