@@ -53,8 +53,16 @@ class Station():
         return result
 
 
-    def time_to_station(self, station):
-        pass
+    def time_to_station(self, station, when=None):
+        url = f'http://localhost:3000/journeys?from={self._id}&to={station._id}&results=1&transfers=0'
+        if when:
+            url += f'&when={when}'
+        journeys_data = requests.get(url).json()
+        print('+++++++++++++++++')
+        for journey in journeys_data:
+            print(journey)
+        print('+++++++++++++++++')
+        return 1000
 
     def time_by_shuttle_in_minutes(self, station):
         origin = self.location
@@ -240,16 +248,16 @@ class Line():
         return stop_or_station in self.stations_set
 
     def next_stations(self, station):
-        result = []
+        result = set()
         for variant in self.variants:
             for i in range(len(variant)):
                 if variant[i].station == station:
                     if i > 0:
-                        result.append(variant[i - 1])
+                        result.add(variant[i - 1])
                     if i + 1 < len(variant):
-                        result.append(variant[i + 1])
+                        result.add(variant[i + 1])
                     continue
-        return result
+        return list(result)
 
 
     def intersecting_lines(self, origin, dest):

@@ -29,24 +29,43 @@ END = datetime.now(pytz.timezone("Europe/Berlin")) \
             .astimezone(pytz.utc).timestamp()
 
 candidates = []
-#for minute in range(START, END):
-for station in stations_instances[:10]:
-    for line in station.lines:
-        for direction in line.next_stations(station): # en teoria 2
-            i = 1
-            while True: #while more stations in direction
-                common_station = line.station_from_direction_steps(station, direction, i)
-                if common_station is None:
-                    print('no common station')
-                    break
-                for different_line in common_station.lines:
-                    if different_line == line:
-                        continue
-                    for different_direction in different_line.next_stations(common_station):
-                        j = 1
-                        while True: #while more stations in direction
-                            candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
-                            if station.time_to_station(common_station) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station)):
-                                candidates.append(candidate)
-                            j += 1
-                i += 1
+for minute in range(START, END):
+    for station in stations_instances[:10]:
+        for line in station.lines:
+            for direction in line.next_stations(station): # en teoria 2
+                i = 1
+                while True: #while more stations in direction
+                    common_station = line.station_from_direction_steps(station, direction, i).station
+                    if common_station is None:
+                        print('no common station')
+                        break
+                    for different_line in common_station.lines:
+                        if different_line == line:
+                            continue
+                        print('========')
+                        print(station.name)
+                        print(common_station.name)
+                        print(different_line.name)
+                        print(f'distance: {station.location.distance(common_station.location)}')
+                        print('...............')
+                        print('different_line next_stations')
+                        [print(x.name) for x in different_line.next_stations(common_station)]
+                        print('========')
+                        for different_direction in different_line.next_stations(common_station):
+                            j = 1
+                            while True: #while more stations in direction
+                                candidate = different_line.station_from_direction_steps(common_station, different_direction, j).station
+                                print('candidate:')
+                                print(candidate.name)
+                                if station.time_to_station(common_station) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station)):
+                                    candidates.append([station, candidate, common_station, minute])
+                                j += 1
+                    i += 1
+
+print('*******CANDIDATES********')
+for candidate in candidates:
+    print('............')
+    print(f'From: {candidate[0]}')
+    print(f'To: {candidate[1]}')
+    print(f'Common_destination: {candidate[2]}')
+    print(f'Time:{candidate[3]}')
