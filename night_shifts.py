@@ -22,50 +22,53 @@ lines_dict = Line.all_lines
 #            print(f' -- -- {station.name}')
 
 START = int(datetime.now(pytz.timezone("Europe/Berlin")) \
-            .replace(hour=1, minute=0, second=0) \
+            .replace(hour=0, minute=1, second=0) \
             .astimezone(pytz.utc).timestamp())
 END = int(datetime.now(pytz.timezone("Europe/Berlin")) \
             .replace(hour=6, minute=0, second=0) \
             .astimezone(pytz.utc).timestamp())
 
 candidates = []
-for station in stations_instances[:10]:
-    for line in station.lines:
-        for direction in line.next_stations(station): # en teoria 2
-            i = 1
-            while True: #while more stations in direction
-                common_station = line.station_from_direction_steps(station, direction, i)
-                if common_station is None:
-                    print('no common station')
-                    break
-                common_station = common_station.station
-                for different_line in common_station.lines:
-                    if different_line == line:
-                        continue
-                    print('========')
-                    print(station.name)
-                    print(common_station.name)
-                    print(different_line.name)
-                    print(f'distance: {station.location.distance(common_station.location)}')
-                    print('...............')
-                    print('different_line next_stations')
-                    [print(x.name) for x in different_line.next_stations(common_station)]
-                    print('========')
-                    for different_direction in different_line.next_stations(common_station):
-                        j = 1
-                        while True: #while more stations in direction
-                            candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
-                            if candidate is None:
-                                break
-                            candidate = candidate.station
-                            print('candidate:')
-                            print(candidate.name)
-                            for minute in range(START, END, 60):
-                                if station.time_to_station(common_station, minute) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute)):
-                                    candidates.append([station, candidate, common_station, minute])
-                                    print('New candidate!')
-                            j += 1
-                i += 1
+with open(f'results-{datetime.now().timestamp()}.csv', 'w') as file:
+    for station in stations_instances:
+        for line in station.lines:
+            for direction in line.next_stations(station): # en teoria 2
+                i = 1
+                while True: #while more stations in direction
+                    common_station = line.station_from_direction_steps(station, direction, i)
+                    if common_station is None:
+                        print('no common station')
+                        break
+                    common_station = common_station.station
+                    for different_line in common_station.lines:
+                        if different_line == line:
+                            continue
+                        print('========')
+                        print(station.name)
+                        print(common_station.name)
+                        print(different_line.name)
+                        print(f'distance: {station.location.distance(common_station.location)}')
+                        print('...............')
+                        print('different_line next_stations')
+                        [print(x.name) for x in different_line.next_stations(common_station)]
+                        print('========')
+                        for different_direction in different_line.next_stations(common_station):
+                            j = 1
+                            while True: #while more stations in direction
+                                candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
+                                if candidate is None:
+                                    break
+                                candidate = candidate.station
+                                print('candidate:')
+                                print(candidate.name)
+                                for minute in range(START, END, 60):
+                                    if station.time_to_station(common_station, minute) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute)):
+                                        result = [station, candidate, common_station, minute]
+                                        candidates.append(result)
+                                        file.write(str(result))
+                                        print('New candidate!')
+                                j += 1
+                    i += 1
 
 print('*******CANDIDATES********')
 for candidate in candidates:

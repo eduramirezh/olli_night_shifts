@@ -59,8 +59,12 @@ class Station():
             url += f'&when={when}'
         journeys_data = requests.get(url).json()
         if len(journeys_data) > 0:
-            journey = journeys_data[0]
-            return int(dateparser.parse(journey['arrival']).timestamp() - when)
+            try:
+                journey = journeys_data[0]
+                return int(dateparser.parse(journey['arrival']).timestamp() - when)
+            except:
+                print('error!!!!!!!!!')
+                print(journeys_data)
         return 100000000
 
     def time_by_shuttle_in_minutes(self, station):
