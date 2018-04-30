@@ -8,6 +8,8 @@ stations_dict = Station.all_stations
 line_instances = Line.get_lines()
 lines_dict = Line.all_lines
 
+TIMEZONE = pytz.timezone("Europe/Berlin")
+
 #for line in line_instances:
 #    if not line.name.startswith('U'):
 #        continue
@@ -21,15 +23,15 @@ lines_dict = Line.all_lines
 #        for station in intersecting_lines[line_id]:
 #            print(f' -- -- {station.name}')
 
-START = int(datetime.now(pytz.timezone("Europe/Berlin")) \
+START = int(datetime.now(TIMEZONE) \
             .replace(hour=0, minute=1, second=0) \
             .astimezone(pytz.utc).timestamp())
-END = int(datetime.now(pytz.timezone("Europe/Berlin")) \
+END = int(datetime.now(TIMEZONE) \
             .replace(hour=6, minute=0, second=0) \
             .astimezone(pytz.utc).timestamp())
 
 candidates = []
-with open(f'results-{datetime.now().timestamp()}.csv', 'w') as file:
+with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
     for station in stations_instances:
         for line in station.lines:
             for direction in line.next_stations(station): # en teoria 2
@@ -61,12 +63,19 @@ with open(f'results-{datetime.now().timestamp()}.csv', 'w') as file:
                                 candidate = candidate.station
                                 print('candidate:')
                                 print(candidate.name)
+                                loops_without_new_candidate = 0
                                 for minute in range(START, END, 60):
+                                    readable_minute = str(datetime.fromtimestamp(minute, TIMEZONE))
                                     if station.time_to_station(common_station, minute) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute)):
-                                        result = [station, candidate, common_station, minute]
+                                        result = [station.name, station._id, candidate.name, candidate._id, common_station.name, common_station._id, readable_minute]
                                         candidates.append(result)
-                                        file.write(str(result))
+                                        file.write(",".join(result) + '\n')
                                         print('New candidate!')
+                                        loops_without_new_candidate = 0
+                                    else:
+                                        loops_without_new_candidate += 1
+                                    if loops_without_new_candidate > 30:
+                                        break
                                 j += 1
                     i += 1
 
