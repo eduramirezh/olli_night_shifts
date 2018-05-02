@@ -58,7 +58,7 @@ class Station():
         if when:
             url += f'&when={when}'
         try:
-            journeys_data = requests.get(url, timeout=5).json()
+            journeys_data = requests.get(url, timeout=3).json()
             if len(journeys_data) > 0:
                 try:
                     journey = journeys_data[0]
@@ -101,7 +101,7 @@ class Station():
         directions = self.contiguous_stations()
         for direction in directions:
             url = f'http://localhost:3000/stations/{self._id}/departures?when={int(timestamp)}&nextStation={direction._id}'
-            journeys_data = requests.get(url).json()
+            journeys_data = requests.get(url, timeout=3).json()
             for journey in journeys_data:
                 if journey.get('cancelled', False):
                     continue
@@ -136,7 +136,7 @@ class Station():
     @classmethod
     def get_stations(cls):
         '''doc'''
-        stations_data = requests.get('http://localhost:3000/stations/all').json()
+        stations_data = requests.get('http://localhost:3000/stations/all', timeout=3).json()
         as_dictionary = {}
         as_list = []
         for key in stations_data:
@@ -234,7 +234,7 @@ class Line():
     @classmethod
     def get_lines(cls, return_dictionary=False):
         '''doc'''
-        lines_data = requests.get('http://localhost:3000/lines?variants=true')
+        lines_data = requests.get('http://localhost:3000/lines?variants=true', timeout=3)
         as_dictionary = {}
         as_list = []
         for line_data in lines_data.text.split('\n'):
