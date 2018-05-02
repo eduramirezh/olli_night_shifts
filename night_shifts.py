@@ -38,53 +38,54 @@ END = int(datetime.now(TIMEZONE) \
 
 candidates = []
 with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
-    for station in stations_instances:
-        if not station.projected_location.within(BERLIN_CENTER):
-            continue
-        for line in station.lines:
-            for direction in line.next_stations(station): # en teoria 2
-                i = 1
-                while True: #while more stations in direction
-                    common_station = line.station_from_direction_steps(station, direction, i)
-                    i += 1
-                    if common_station is None:
-                        print('no common station')
-                        break
-                    if len(common_station.lines) < 4:
-                        print('common station has less than 4 lines')
-                        continue
-                    common_station = common_station.station
-                    for different_line in common_station.lines:
-                        if different_line == line:
+    for minute in range(START, END, 120):
+        for station in stations_instances:
+            if not station.projected_location.within(BERLIN_CENTER):
+                continue
+            for line in station.lines:
+                for direction in line.next_stations(station): # en teoria 2
+                    i = 1
+                    while True: #while more stations in direction
+                        common_station = line.station_from_direction_steps(station, direction, i)
+                        i += 1
+                        if common_station is None:
+                            print('no common station')
+                            break
+                        if len(common_station.lines) < 4:
+                            print('common station has less than 4 lines')
                             continue
-                        print('========')
-                        print(station.name)
-                        print(common_station.name)
-                        print(different_line.name)
-                        print(f'distance: {station.location.distance(common_station.location)}')
-                        print('...............')
-                        print('different_line next_stations')
-                        [print(x.name) for x in different_line.next_stations(common_station)]
-                        print('========')
-                        for different_direction in different_line.next_stations(common_station):
-                            j = 1
-                            while True: #while more stations in direction
-                                candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
-                                j += 1
-                                print('is candidate valid?')
-                                if candidate is None:
-                                    print('nope, no more stations remain')
-                                    break
-                                candidate = candidate.station
-                                is_within = candidate.projected_location.within(BERLIN_CENTER)
-                                is_closer_than_max_distance = candidate.location.distance(station.location) <= MAX_DISTANCE
-                                if not is_within or not is_closer_than_max_distance:
-                                    print('nope, too far away')
-                                    continue
-                                print('candidate:')
-                                print(candidate.name)
-                                loops_without_new_candidate = 0
-                                for minute in range(START, END, 120):
+                        common_station = common_station.station
+                        for different_line in common_station.lines:
+                            if different_line == line:
+                                continue
+                            print('========')
+                            print(station.name)
+                            print(common_station.name)
+                            print(different_line.name)
+                            print(f'distance: {station.location.distance(common_station.location)}')
+                            print('...............')
+                            print('different_line next_stations')
+                            [print(x.name) for x in different_line.next_stations(common_station)]
+                            print('========')
+                            for different_direction in different_line.next_stations(common_station):
+                                j = 1
+                                while True: #while more stations in direction
+                                    candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
+                                    j += 1
+                                    print('is candidate valid?')
+                                    if candidate is None:
+                                        print('nope, no more stations remain')
+                                        break
+                                    candidate = candidate.station
+                                    is_within = candidate.projected_location.within(BERLIN_CENTER)
+                                    is_closer_than_max_distance = candidate.location.distance(station.location) <= MAX_DISTANCE
+                                    if not is_within or not is_closer_than_max_distance:
+                                        print('nope, too far away')
+                                        continue
+                                    print('candidate:')
+                                    print(candidate.name)
+                                    loops_without_new_candidate = 0
+                                    # for minute in range(START, END, 120):
                                     readable_minute = str(datetime.fromtimestamp(minute, TIMEZONE))
                                     time_surplus = station.time_to_station(common_station, minute) - (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute))
                                     linestring = LineString([station.location, common_station.location, candidate.location])
@@ -92,12 +93,12 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                                         result = [station.name, station._id, common_station.name, common_station._id, candidate.name, candidate._id, time_surplus, readable_minute, linestring.wkt]
                                         candidates.append(result)
                                         file.write(",".join([f'"{str(x)}"'  for x in result]) + '\n')
-                                        print('New candidate!')
+                                        print(f'New candidate! surplus: {time_surplus} minutes')
                                         loops_without_new_candidate = 0
-                                    else:
-                                        loops_without_new_candidate += 1
-                                    if loops_without_new_candidate > 30:
-                                        break
+                                    # else:
+                                    #     loops_without_new_candidate += 1
+                                    # if loops_without_new_candidate > 20:
+                                    #     break
 
 print('*******CANDIDATES********')
 for candidate in candidates:

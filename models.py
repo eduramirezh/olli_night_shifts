@@ -57,7 +57,7 @@ class Station():
 
 
     def time_to_station(self, station, when=None):
-        url = f'http://localhost:3000/journeys?from={self._id}&to={station._id}&results=1&transfers=0'
+        url = f'http://localhost:3000/journeys?from={self._id}&to={station._id}&results=1'
         if when:
             url += f'&when={when}'
         try:
@@ -65,7 +65,7 @@ class Station():
             if len(journeys_data) > 0:
                 try:
                     journey = journeys_data[0]
-                    return int(dateparser.parse(journey['arrival']).timestamp() - when)
+                    return int((dateparser.parse(journey['arrival']).timestamp() - when)/60)
                 except:
                     print('error!!!!!!!!!')
                     print(journeys_data)
