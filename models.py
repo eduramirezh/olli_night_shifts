@@ -57,14 +57,17 @@ class Station():
         url = f'http://localhost:3000/journeys?from={self._id}&to={station._id}&results=1&transfers=0'
         if when:
             url += f'&when={when}'
-        journeys_data = requests.get(url).json()
-        if len(journeys_data) > 0:
-            try:
-                journey = journeys_data[0]
-                return int(dateparser.parse(journey['arrival']).timestamp() - when)
-            except:
-                print('error!!!!!!!!!')
-                print(journeys_data)
+        try:
+            journeys_data = requests.get(url, timeout=5).json()
+            if len(journeys_data) > 0:
+                try:
+                    journey = journeys_data[0]
+                    return int(dateparser.parse(journey['arrival']).timestamp() - when)
+                except:
+                    print('error!!!!!!!!!')
+                    print(journeys_data)
+        except:
+            print('request timed out')
         return 100000000
 
     def time_by_shuttle_in_minutes(self, station):
