@@ -25,12 +25,13 @@ TIMEZONE = pytz.timezone("Europe/Berlin")
 #            print(f' -- -- {station.name}')
 
 BERLIN_CENTER = coordinates_to_geography(wkt.loads('POLYGON((13.397554705226526 52.55577511250286,13.34399635561715 52.53990827773609,13.277735064113244 52.53092844861436,13.274988482081994 52.49749899889902,13.312753985011682 52.476174448880776,13.427258835295106 52.457571347161775,13.475324020841981 52.47116746155413,13.487059832063096 52.509231759524376,13.480193376984971 52.53555255182724,13.436248064484971 52.55559590471181,13.397554705226526 52.55577511250286))'))
+MAX_DISTANCE = 2000 # 2km
 
 START = int(datetime.now(TIMEZONE) \
             .replace(hour=0, minute=1, second=0) \
             .astimezone(pytz.utc).timestamp())
 END = int(datetime.now(TIMEZONE) \
-            .replace(hour=6, minute=0, second=0) \
+            .replace(hour=3, minute=0, second=0) \
             .astimezone(pytz.utc).timestamp())
 
 candidates = []
@@ -66,12 +67,14 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                                 if candidate is None:
                                     break
                                 candidate = candidate.station
-                                if not candidate.location.within(BERLIN_CENTER):
+                                is_within = candidate.location.within(BERLIN_CENTER)
+                                is_closer_than_max_distance = candidate.location.distance(station.location) <= MAX_DISTANCE
+                                if not is_within or not is_closer_than_max_distance:
                                     continue
                                 print('candidate:')
                                 print(candidate.name)
                                 loops_without_new_candidate = 0
-                                for minute in range(START, END, 60):
+                                for minute in range(START, END, 120):
                                     readable_minute = str(datetime.fromtimestamp(minute, TIMEZONE))
                                     if station.time_to_station(common_station, minute) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute)):
                                         result = [station.name, station._id, candidate.name, candidate._id, common_station.name, common_station._id, readable_minute]
