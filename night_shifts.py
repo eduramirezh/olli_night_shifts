@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from models import Station, Stop, Line
+from models import Station, Stop, Line, coordinates_to_geography
 from datetime import datetime
+from shapely import wkt
 import pytz
 
 stations_instances = Station.get_stations()
@@ -23,6 +24,8 @@ TIMEZONE = pytz.timezone("Europe/Berlin")
 #        for station in intersecting_lines[line_id]:
 #            print(f' -- -- {station.name}')
 
+BERLIN_CENTER = coordinates_to_geography(wkt.loads('POLYGON((13.397554705226526 52.55577511250286,13.34399635561715 52.53990827773609,13.277735064113244 52.53092844861436,13.274988482081994 52.49749899889902,13.312753985011682 52.476174448880776,13.427258835295106 52.457571347161775,13.475324020841981 52.47116746155413,13.487059832063096 52.509231759524376,13.480193376984971 52.53555255182724,13.436248064484971 52.55559590471181,13.397554705226526 52.55577511250286))'))
+
 START = int(datetime.now(TIMEZONE) \
             .replace(hour=0, minute=1, second=0) \
             .astimezone(pytz.utc).timestamp())
@@ -33,6 +36,8 @@ END = int(datetime.now(TIMEZONE) \
 candidates = []
 with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
     for station in stations_instances:
+        if not station.location.within(BERLIN_CENTER):
+            continue
         for line in station.lines:
             for direction in line.next_stations(station): # en teoria 2
                 i = 1
@@ -61,6 +66,8 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                                 if candidate is None:
                                     break
                                 candidate = candidate.station
+                                if not candidate.location.within(BERLIN_CENTER):
+                                    continue
                                 print('candidate:')
                                 print(candidate.name)
                                 loops_without_new_candidate = 0
