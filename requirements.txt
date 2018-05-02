@@ -1,0 +1,13 @@
+certifi==2018.4.16
+chardet==3.0.4
+dateparser==0.7.0
+idna==2.6
+pyproj==1.9.5.1
+python-dateutil==2.7.2
+pytz==2018.4
+regex==2018.2.21
+requests==2.18.4
+Shapely==1.6.4.post1
+six==1.11.0
+tzlocal==1.5.1
+urllib3==1.22
