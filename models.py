@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import Timeout
 import dateparser
 import json
 from shapely.geometry import Point
@@ -24,7 +25,8 @@ class Stop():
         self._id = _id
         self.name = name
         self.station = station
-        self.location = coordinates_to_geography(Point(lon, lat))
+        self.location = Point(lon, lat)
+        self.projected_location = coordinates_to_geography(Point(lon, lat))
         self.lines = set()
         type(self).all_stops[_id] = self
 
@@ -35,7 +37,8 @@ class Station():
     def __init__(self, _id, name, lat, lon, weight):
         self._id = _id
         self.name = name
-        self.location = coordinates_to_geography(Point(lon, lat))
+        self.projected_location = coordinates_to_geography(Point(lon, lat))
+        self.location = Point(lon, lat)
         self.weight = float(weight)
         self.schedules = []
         self.linked_stations = []
@@ -66,13 +69,15 @@ class Station():
                 except:
                     print('error!!!!!!!!!')
                     print(journeys_data)
-        except:
+        except Timeout:
             print('request timed out')
+        except (KeyboardInterrupt, SystemExit):
+            raise
         return 100000000
 
     def time_by_shuttle_in_minutes(self, station):
-        origin = self.location
-        destination = station.location
+        origin = self.projected_location
+        destination = station.projected_location
         distance = origin.distance(destination)/1000
         return (distance/SHUTTLE_SPEED)*60
 
@@ -117,7 +122,7 @@ class Station():
     @classmethod
     def minutes_between(cls, station_a, station_b):
         """to be documented"""
-        distance = station_a.location.distance(station_b.location)/1000
+        distance = station_a.projected_location.distance(station_b.projected_location)/1000
         return (distance/SHUTTLE_SPEED)*60
 
     @classmethod

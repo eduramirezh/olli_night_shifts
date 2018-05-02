@@ -2,6 +2,8 @@
 from models import Station, Stop, Line, coordinates_to_geography
 from datetime import datetime
 from shapely import wkt
+from shapely.geometry import LineString
+
 import pytz
 
 stations_instances = Station.get_stations()
@@ -37,7 +39,7 @@ END = int(datetime.now(TIMEZONE) \
 candidates = []
 with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
     for station in stations_instances:
-        if not station.location.within(BERLIN_CENTER):
+        if not station.projected_location.within(BERLIN_CENTER):
             continue
         for line in station.lines:
             for direction in line.next_stations(station): # en teoria 2
@@ -48,6 +50,9 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                     if common_station is None:
                         print('no common station')
                         break
+                    if len(common_station.lines) < 4:
+                        print('common station has less than 4 lines')
+                        continue
                     common_station = common_station.station
                     for different_line in common_station.lines:
                         if different_line == line:
@@ -71,7 +76,7 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                                     print('nope, no more stations remain')
                                     break
                                 candidate = candidate.station
-                                is_within = candidate.location.within(BERLIN_CENTER)
+                                is_within = candidate.projected_location.within(BERLIN_CENTER)
                                 is_closer_than_max_distance = candidate.location.distance(station.location) <= MAX_DISTANCE
                                 if not is_within or not is_closer_than_max_distance:
                                     print('nope, too far away')
@@ -81,10 +86,12 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                                 loops_without_new_candidate = 0
                                 for minute in range(START, END, 120):
                                     readable_minute = str(datetime.fromtimestamp(minute, TIMEZONE))
-                                    if station.time_to_station(common_station, minute) > (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute)):
-                                        result = [station.name, station._id, candidate.name, candidate._id, common_station.name, common_station._id, readable_minute]
+                                    time_surplus = station.time_to_station(common_station, minute) - (station.time_by_shuttle_in_minutes(candidate) + candidate.time_to_station(common_station, minute))
+                                    linestring = LineString([station.location, common_station.location, candidate.location])
+                                    if time_surplus > 0:
+                                        result = [station.name, station._id, common_station.name, common_station._id, candidate.name, candidate._id, time_surplus, readable_minute, linestring.wkt]
                                         candidates.append(result)
-                                        file.write(",".join(result) + '\n')
+                                        file.write(",".join([f'"{str(x)}"'  for x in result]) + '\n')
                                         print('New candidate!')
                                         loops_without_new_candidate = 0
                                     else:
