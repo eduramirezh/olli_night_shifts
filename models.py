@@ -7,7 +7,7 @@ from shapely.ops import transform
 from functools import partial
 import pyproj
 
-SHUTTLE_SPEED = 20 #km/hr
+SHUTTLE_SPEED = 15 #km/hr
 
 def coordinates_to_geography(shapely_point):
     project = partial(

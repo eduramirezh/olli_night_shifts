@@ -37,7 +37,7 @@ END = int(datetime.now(TIMEZONE) \
             .astimezone(pytz.utc).timestamp())
 
 candidates = []
-with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
+with open(f'sim_results/results-{int(datetime.now().timestamp())}.csv', 'w') as file:
     for minute in range(START, END, 120):
         for station in stations_instances:
             if not station.projected_location.within(BERLIN_CENTER):
