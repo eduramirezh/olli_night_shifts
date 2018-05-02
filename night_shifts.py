@@ -44,6 +44,7 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                 i = 1
                 while True: #while more stations in direction
                     common_station = line.station_from_direction_steps(station, direction, i)
+                    i += 1
                     if common_station is None:
                         print('no common station')
                         break
@@ -64,12 +65,16 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                             j = 1
                             while True: #while more stations in direction
                                 candidate = different_line.station_from_direction_steps(common_station, different_direction, j)
+                                j += 1
+                                print('is candidate valid?')
                                 if candidate is None:
+                                    print('nope, no more stations remain')
                                     break
                                 candidate = candidate.station
                                 is_within = candidate.location.within(BERLIN_CENTER)
                                 is_closer_than_max_distance = candidate.location.distance(station.location) <= MAX_DISTANCE
                                 if not is_within or not is_closer_than_max_distance:
+                                    print('nope, too far away')
                                     continue
                                 print('candidate:')
                                 print(candidate.name)
@@ -86,8 +91,6 @@ with open(f'sim_results/results-{datetime.now().timestamp()}.csv', 'w') as file:
                                         loops_without_new_candidate += 1
                                     if loops_without_new_candidate > 30:
                                         break
-                                j += 1
-                    i += 1
 
 print('*******CANDIDATES********')
 for candidate in candidates:
