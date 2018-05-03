@@ -66,8 +66,9 @@ class Station():
                 try:
                     journey = journeys_data[0]
                     return int((dateparser.parse(journey['arrival']).timestamp() - when)/60)
-                except:
+                except Exception as e:
                     print('error!!!!!!!!!')
+                    print(e)
                     print(journeys_data)
         except Timeout:
             print('request timed out')
